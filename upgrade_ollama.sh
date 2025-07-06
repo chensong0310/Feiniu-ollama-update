@@ -17,7 +17,7 @@ for vol in "${VOL_PREFIXES[@]}"; do
     fi
 done
 
-# 如果未找到，则检查是否存在中断的备份
+## 如果未找到主安装路径，则检查是否存在中断的备份
 if [ -z "$AI_INSTALLER" ]; then
     for vol in "${VOL_PREFIXES[@]}"; do
         testdir="$vol/@appcenter/ai_installer"
@@ -28,7 +28,12 @@ if [ -z "$AI_INSTALLER" ]; then
                 echo "⚠️ 检测到未完成的升级：$testdir 中存在备份 $LAST_BK，但当前没有 ollama/"
                 mv "$LAST_BK" ollama
                 echo "✅ 已恢复 $LAST_BK 为 ollama/"
-                ./ollama/bin/ollama --version
+                if [ -x "./ollama/bin/ollama" ]; then
+                    ./ollama/bin/ollama --version
+                else
+                    echo "⚠️ 还原后未找到 ollama 可执行文件，可能备份不完整"
+                fi
+                exit 0  # ✅ 成功还原后立即退出整个脚本
             fi
         fi
     done
@@ -36,6 +41,7 @@ if [ -z "$AI_INSTALLER" ]; then
     echo "❌ 未找到 Ollama 安装路径，也没有检测到可恢复的中断备份"
     exit 1
 fi
+
 
 cd "$AI_INSTALLER"
 
