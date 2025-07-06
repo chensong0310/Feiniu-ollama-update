@@ -84,6 +84,13 @@ fi
 
 echo "📦 最新版本号：$LATEST_TAG"
 
+
+# 如果版本一致，退出升级
+if [ "$CLIENT_VER" = "${LATEST_TAG#v}" ]; then
+    echo "✅ 当前已是最新版本（v$CLIENT_VER），无需升级。"
+    exit 0
+fi
+
 # 如果已有完整文件就跳过下载
 if [ -f "$FILENAME" ]; then
     echo "🔍 检测到本地已有 $FILENAME，验证完整性..."
