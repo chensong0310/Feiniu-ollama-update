@@ -61,7 +61,7 @@ taco@MS-FnOS:~$ curl -sL https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-
 
 ### 🔁 ollama 版本还原脚本（可选）
 
-如果你遇到兼容性或运行异常，可以一键还原上一个版本：
+如果你遇到兼容性或运行异常，可以一键还原之前版本：
 
 ```bash
 curl -sL https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-update/main/restore_ollama.sh | bash
@@ -76,13 +76,36 @@ curl -sL https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-update/main/rest
 升级成功后建议清理系统残留的旧版本与下载文件：
 
 ```bash
-curl -sL https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-update/main/cleanup_ollama.sh | bash
+curl -sL https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-update/main/cleanup_ollama.sh | bash -s -- --force
+
 ```
 
-> 交互式确认可选删除内容，也支持一键清理：
+> 交互式确认可选删除内容：
 
 ```bash
-bash cleanup_ollama.sh --force
+curl -O https://raw.githubusercontent.com/wzqvip/Feiniu-ollama-update/main/cleanup_ollama.sh
+bash cleanup_ollama.sh
+
+```
+
+示例：
+
+```
+🧹 正在查找 Ollama 安装目录...
+✅ 找到目录：/vol1/@appcenter/ai_installer
+📦 将删除以下备份目录：
+ollama_bk_20250707_023630
+ollama_bk_20250707_024938
+❓ 是否删除这些目录？[y/N]
+y 
+🗑️ 删除：ollama_bk_20250707_023630
+🗑️ 删除：ollama_bk_20250707_024938
+📦 将删除以下压缩包文件：
+ollama-linux-amd64.tgz
+❓ 是否删除这些压缩包？[y/N]
+y
+🗑️ 删除：ollama-linux-amd64.tgz
+✅ 清理完成！
 ```
 
 ---
