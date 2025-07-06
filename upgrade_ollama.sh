@@ -38,7 +38,12 @@ echo "📦 已备份原版 Ollama 为：$BACKUP_NAME"
 # 4. 下载最新版本
 FILENAME="ollama-linux-amd64.tgz"
 echo "🌐 获取 Ollama 最新版本号..."
-LATEST_TAG=$(curl -s https://api.github.com/repos/ollama/ollama/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
+
+# 使用 GitHub API 获取最新版本号
+#LATEST_TAG=$(curl -s https://api.github.com/repos/ollama/ollama/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
+# 国内网络原因，或者代理，会遇到速率限制问题。 用一个小trick拉网页获取。
+echo "🌐 获取 Ollama 最新版本号 ..."
+LATEST_TAG=$(curl -s https://github.com/ollama/ollama/releases | grep -oP '/ollama/ollama/releases/tag/\K[^"]+' | head -n 1)
 
 if [ -z "$LATEST_TAG" ]; then
     echo "❌ 无法从 GitHub 获取 Ollama 最新版本号，请检查网络连接或代理设置"
