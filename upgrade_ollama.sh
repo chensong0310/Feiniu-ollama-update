@@ -7,6 +7,8 @@ set -o pipefail
 echo "🔍 查找 Ollama 安装路径..."
 VOL_PREFIXES=(/vol1 /vol2 /vol3 /vol4 /vol5 /vol6 /vol7 /vol8 /vol9)
 AI_INSTALLER=""
+
+# 遍历寻找 ollama 安装目录
 for vol in "${VOL_PREFIXES[@]}"; do
     if [ -d "$vol/@appcenter/ai_installer/ollama" ]; then
         AI_INSTALLER="$vol/@appcenter/ai_installer"
@@ -15,20 +17,51 @@ for vol in "${VOL_PREFIXES[@]}"; do
     fi
 done
 
+# 如果未找到，则检查是否存在中断的备份
 if [ -z "$AI_INSTALLER" ]; then
-    echo "❌ 未找到 Ollama 安装路径，请确认是否已安装飞牛 AI 应用"
+    for vol in "${VOL_PREFIXES[@]}"; do
+        testdir="$vol/@appcenter/ai_installer"
+        if [ -d "$testdir" ]; then
+            cd "$testdir"
+            LAST_BK=$(ls -td ollama_bk_* 2>/dev/null | head -n 1)
+            if [ -n "$LAST_BK" ] && [ ! -d "ollama" ]; then
+                echo "⚠️ 检测到未完成的升级：$testdir 中存在备份 $LAST_BK，但当前没有 ollama/"
+                echo "❓ 是否恢复备份？[y/N]"
+                read -r choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    mv "$LAST_BK" ollama
+                    echo "✅ 已恢复 $LAST_BK 为 ollama/"
+                    ./ollama/bin/ollama --version
+                    exit 0
+                fi
+            fi
+        fi
+    done
+
+    echo "❌ 未找到 Ollama 安装路径，也没有检测到可恢复的中断备份"
     exit 1
 fi
 
 cd "$AI_INSTALLER"
 
+
 # 2. 打印当前版本
-if [ -x "ollama/bin/ollama" ]; then
-    echo "📦 当前 Ollama 版本："
-    ./ollama/bin/ollama --version
+echo "📦 正在检测当前 Ollama 客户端版本..."
+
+if [ -x "./ollama/bin/ollama" ]; then
+    VERSION_RAW=$(./ollama/bin/ollama --version 2>&1)
+    CLIENT_VER=$(echo "$VERSION_RAW" | grep -i "client version" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+
+    if [ -n "$CLIENT_VER" ]; then
+        echo "📦 当前已安装版本：v$CLIENT_VER（客户端）"
+    else
+        echo "⚠️ 无法获取版本号，原始输出如下："
+        echo "$VERSION_RAW"
+    fi
 else
-    echo "⚠️ 找不到现有 Ollama 可执行文件，可能未完整安装"
+    echo "❌ 未找到 ollama 可执行文件"
 fi
+
 
 # 3. 备份旧版本
 BACKUP_NAME="ollama_bk_$(date +%Y%m%d_%H%M%S)"
@@ -49,15 +82,30 @@ if [ -z "$LATEST_TAG" ]; then
     exit 1
 fi
 
-echo "⬇️ 正在下载版本 $LATEST_TAG ..."
-# curl -L -o "$FILENAME" "https://github.com/ollama/ollama/releases/download/$LATEST_TAG/ollama-linux-amd64.tgz"
-# 多线程下载（有 aria2c 就用，没有就 fallback 到 curl）
-if command -v aria2c >/dev/null 2>&1; then
-    echo "🚀 使用 aria2c 多线程下载 $LATEST_TAG ..."
-    aria2c -x 16 -s 16 -k 1M -o "$FILENAME" "$URL"
-else
-    echo "⬇️ 使用 curl 单线程下载..."
-    curl -L -o "$FILENAME" "$URL"
+echo "📦 最新版本号：$LATEST_TAG"
+
+# 如果已有完整文件就跳过下载
+if [ -f "$FILENAME" ]; then
+    echo "🔍 检测到本地已有 $FILENAME，验证完整性..."
+
+    if gzip -t "$FILENAME" 2>/dev/null; then
+        echo "✅ 本地压缩包完整，跳过下载"
+    else
+        echo "❌ 本地文件损坏，重新下载"
+        rm -f "$FILENAME"
+    fi
+fi
+
+# 如果文件不存在才开始下载
+if [ ! -f "$FILENAME" ]; then
+    echo "⬇️ 正在下载版本 $LATEST_TAG ..."
+    if command -v aria2c >/dev/null 2>&1; then
+        echo "🚀 使用 aria2c 多线程下载..."
+        aria2c -x 16 -s 16 -k 1M -o "$FILENAME" "$URL"
+    else
+        echo "⬇️ 使用 curl 单线程下载..."
+        curl -L -o "$FILENAME" "$URL"
+    fi
 fi
 
 # 5. 解压部署新版本
@@ -91,7 +139,19 @@ cd "$PIP_DIR"
 
 # 7. 打印新版本确认
 cd "$AI_INSTALLER"
-echo "✅ 新 Ollama 版本为："
-./ollama/bin/ollama --version
+
+if [ -x "./ollama/bin/ollama" ]; then
+    VERSION_RAW=$(./ollama/bin/ollama --version 2>&1)
+    CLIENT_VER=$(echo "$VERSION_RAW" | grep -i "client version" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+
+    if [ -n "$CLIENT_VER" ]; then
+        echo "✅ 新 Ollama 版本为：v$CLIENT_VER（客户端）"
+    else
+        echo "⚠️ 无法提取版本号，原始输出如下："
+        echo "$VERSION_RAW"
+    fi
+else
+    echo "❌ 未找到 ollama 可执行文件"
+fi
 
 echo "🎉 升级完成！Ollama 与 open-webui 均为最新版本。"
