@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-echo " 🔄 Ollama 升级脚本 for FnOS v2.0"
+echo " 🔄 Ollama 升级脚本 for FnOS v2.1"
 
 # 1. 查找 Ollama 安装路径
 echo "🔍 查找 Ollama 安装路径..."
@@ -44,7 +44,7 @@ if [ -z "$AI_INSTALLER" ]; then
     exit 1
 fi
 
-cd "$AI_INSTALLER"å
+cd "$AI_INSTALLER"
 
 # 2. 打印当前版本
 echo "📦 正在检测当前 Ollama 客户端版本..."
