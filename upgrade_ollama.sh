@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-echo " 🔄 Ollama 升级脚本 for FnOS v2.1"
+echo "🔄 Ollama 升级脚本 for FnOS, 脚本v2.1.1"
 
 # 1. 查找 Ollama 安装路径
 echo "🔍 查找 Ollama 安装路径..."
