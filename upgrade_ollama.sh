@@ -50,7 +50,15 @@ if [ -z "$LATEST_TAG" ]; then
 fi
 
 echo "⬇️ 正在下载版本 $LATEST_TAG ..."
-curl -L -o "$FILENAME" "https://github.com/ollama/ollama/releases/download/$LATEST_TAG/ollama-linux-amd64.tgz"
+# curl -L -o "$FILENAME" "https://github.com/ollama/ollama/releases/download/$LATEST_TAG/ollama-linux-amd64.tgz"
+# 多线程下载（有 aria2c 就用，没有就 fallback 到 curl）
+if command -v aria2c >/dev/null 2>&1; then
+    echo "🚀 使用 aria2c 多线程下载 $LATEST_TAG ..."
+    aria2c -x 16 -s 16 -k 1M -o "$FILENAME" "$URL"
+else
+    echo "⬇️ 使用 curl 单线程下载..."
+    curl -L -o "$FILENAME" "$URL"
+fi
 
 # 5. 解压部署新版本
 echo "📦 解压到 ollama/ ..."
