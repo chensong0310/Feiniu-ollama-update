@@ -26,14 +26,9 @@ if [ -z "$AI_INSTALLER" ]; then
             LAST_BK=$(ls -td ollama_bk_* 2>/dev/null | head -n 1)
             if [ -n "$LAST_BK" ] && [ ! -d "ollama" ]; then
                 echo "⚠️ 检测到未完成的升级：$testdir 中存在备份 $LAST_BK，但当前没有 ollama/"
-                echo "❓ 是否恢复备份？[y/N]"
-                read -r choice
-                if [[ "$choice" =~ ^[Yy]$ ]]; then
-                    mv "$LAST_BK" ollama
-                    echo "✅ 已恢复 $LAST_BK 为 ollama/"
-                    ./ollama/bin/ollama --version
-                    exit 0
-                fi
+                mv "$LAST_BK" ollama
+                echo "✅ 已恢复 $LAST_BK 为 ollama/"
+                ./ollama/bin/ollama --version
             fi
         fi
     done
