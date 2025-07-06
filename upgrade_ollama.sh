@@ -42,7 +42,6 @@ echo "🌐 获取 Ollama 最新版本号..."
 # 使用 GitHub API 获取最新版本号
 #LATEST_TAG=$(curl -s https://api.github.com/repos/ollama/ollama/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
 # 国内网络原因，或者代理，会遇到速率限制问题。 用一个小trick拉网页获取。
-echo "🌐 获取 Ollama 最新版本号 ..."
 LATEST_TAG=$(curl -s https://github.com/ollama/ollama/releases | grep -oP '/ollama/ollama/releases/tag/\K[^"]+' | head -n 1)
 
 if [ -z "$LATEST_TAG" ]; then
@@ -54,12 +53,9 @@ echo "⬇️ 正在下载版本 $LATEST_TAG ..."
 curl -L -o "$FILENAME" "https://github.com/ollama/ollama/releases/download/$LATEST_TAG/ollama-linux-amd64.tgz"
 
 # 5. 解压部署新版本
-echo "📦 解压中..."
-tar -xzf "$FILENAME"
-mkdir -p ollama/bin ollama/lib
-mv bin/ollama ollama/bin/
-mv lib/* ollama/lib/ 2>/dev/null || echo "⚠️ 无 lib 内容"
-rmdir bin lib 2>/dev/null || true
+echo "📦 解压到 ollama/ ..."
+mkdir -p ollama
+tar -xzf "$FILENAME" -C ollama
 
 # 6. 升级 pip 和 open-webui
 PIP_DIR="$AI_INSTALLER/python/bin"
