@@ -27,7 +27,7 @@ if [ -z "$AI_INSTALLER" ]; then
             if [ -n "$LAST_BK" ] && [ ! -d "ollama" ]; then
                 echo "⚠️ 检测到未完成的升级：$testdir 中存在备份 $LAST_BK，但当前没有 ollama/"
                 mv "$LAST_BK" ollama
-                echo "✅ 已恢复 $LAST_BK 为 ollama/"
+                echo "✅ 已恢复 $LAST_BK 为 ollama/， 请重新执行本脚本更新"
                 if [ -x "./ollama/bin/ollama" ]; then
                     ./ollama/bin/ollama --version
                 else
@@ -42,9 +42,7 @@ if [ -z "$AI_INSTALLER" ]; then
     exit 1
 fi
 
-
-cd "$AI_INSTALLER"
-
+cd "$AI_INSTALLER"å
 
 # 2. 打印当前版本
 echo "📦 正在检测当前 Ollama 客户端版本..."
@@ -63,13 +61,7 @@ else
     echo "❌ 未找到 ollama 可执行文件"
 fi
 
-
-# 3. 备份旧版本
-BACKUP_NAME="ollama_bk_$(date +%Y%m%d_%H%M%S)"
-mv ollama "$BACKUP_NAME"
-echo "📦 已备份原版 Ollama 为：$BACKUP_NAME"
-
-# 4. 下载最新版本
+# 3. 下载最新版本
 FILENAME="ollama-linux-amd64.tgz"
 echo "🌐 获取 Ollama 最新版本号..."
 
@@ -84,7 +76,6 @@ if [ -z "$LATEST_TAG" ]; then
 fi
 
 echo "📦 最新版本号：$LATEST_TAG"
-
 
 # 如果版本一致，退出升级
 if [ "$CLIENT_VER" = "${LATEST_TAG#v}" ]; then
@@ -115,6 +106,12 @@ if [ ! -f "$FILENAME" ]; then
         curl -L -o "$FILENAME" "$URL"
     fi
 fi
+
+
+# 4. 备份旧版本
+BACKUP_NAME="ollama_bk_$(date +%Y%m%d_%H%M%S)"
+mv ollama "$BACKUP_NAME"
+echo "📦 已备份原版 Ollama 为：$BACKUP_NAME"
 
 # 5. 解压部署新版本
 echo "📦 解压到 ollama/ ..."
