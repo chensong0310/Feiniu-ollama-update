@@ -78,6 +78,7 @@ if [ -z "$LATEST_TAG" ]; then
 fi
 
 echo "📦 最新版本号：$LATEST_TAG"
+URL="https://github.com/ollama/ollama/releases/download/$LATEST_TAG/$FILENAME"
 
 # 如果版本一致，退出升级
 if [ "$CLIENT_VER" = "${LATEST_TAG#v}" ]; then
